@@ -9,6 +9,75 @@ struct DomainModel {
 // Money
 //
 public struct Money {
+    public var amount: Int
+    public var currency: String
+    
+    private static let acceptedCurrencies = ["USD", "EUR", "GBP", "CAN"]
+    
+    public init(amount: Int, currency: String) {
+        self.amount = amount
+        self.currency = currency
+    }
+    
+    private func toUSD() -> Double {
+        if self.currency == "USD" {
+            return Double(self.amount)
+        }
+        else if self.currency == "GBP" {
+            return Double(self.amount) * 2.0
+        }
+        else if self.currency == "EUR" {
+            return Double(self.amount) / 1.5
+        }
+        else if self.currency == "CAN" {
+            return Double(self.amount) / 1.25
+        }
+        else {
+            fatalError("Unsupported currency: \(self.currency)")
+        }
+    }
+    
+    private static func fromUSD(_ usd: Double, to currency: String) -> Int {
+        if currency == "USD" {
+            return Int((usd).rounded())
+        }
+        else if currency == "GBP" {
+            return Int((usd / 2.0).rounded())
+        }
+        else if currency == "EUR" {
+            return Int((usd * 1.5).rounded())
+        }
+        else if currency == "CAN" {
+            return Int((usd * 1.25).rounded())
+        }
+        else {
+            fatalError("Unsupported currency: \(currency)")
+        }
+    }
+    
+    public func convert(_ currency: String) -> Money {
+        guard Self.acceptedCurrencies.contains(currency) else {
+                fatalError("Unsupported currency: \(currency)")
+        }
+        let converted = Money.fromUSD(self.toUSD(), to: currency)
+        return Money(amount: converted, currency: currency)
+    }
+    
+    public func add(_ other: Money) -> Money {
+        let selfUSD = self.toUSD()
+        let otherUSD = other.toUSD()
+        let sumUSD = selfUSD + otherUSD
+        let totalAmount = Money.fromUSD(sumUSD, to: other.currency)
+        return Money(amount: totalAmount, currency: other.currency)
+    }
+    
+    public func subtract (_ other: Money) -> Money {
+        let selfUSD = self.toUSD()
+        let otherUSD = other.toUSD()
+        let differenceUSD = selfUSD - otherUSD
+        let totalAmount = Money.fromUSD(differenceUSD, to: self.currency)
+        return Money(amount: totalAmount, currency: self.currency)
+    }
 }
 
 ////////////////////////////////////
