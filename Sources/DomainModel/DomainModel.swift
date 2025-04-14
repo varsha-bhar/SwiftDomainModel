@@ -57,7 +57,7 @@ public struct Money {
     
     public func convert(_ currency: String) -> Money {
         guard Self.acceptedCurrencies.contains(currency) else {
-                fatalError("Unsupported currency: \(currency)")
+            fatalError("Unsupported currency: \(currency)")
         }
         let converted = Money.fromUSD(self.toUSD(), to: currency)
         return Money(amount: converted, currency: currency)
@@ -78,6 +78,7 @@ public struct Money {
         let totalAmount = Money.fromUSD(differenceUSD, to: self.currency)
         return Money(amount: totalAmount, currency: self.currency)
     }
+    
 }
 
 ////////////////////////////////////
@@ -88,6 +89,49 @@ public class Job {
         case Hourly(Double)
         case Salary(UInt)
     }
+    
+    public var title: String
+    public var type: JobType
+    
+    public init(title: String, type: JobType) {
+        self.title = title
+        self.type = type
+    }
+    
+    public func calculateIncome(_ hours: Int) -> Int {
+        if case .Hourly(let rate) = type {
+            return Int(rate * Double(hours))
+        }
+        else if case .Salary(let annual) = type {
+            return Int(annual)
+        }
+        else {
+            return 0
+        }
+    }
+    
+    public func raise(byAmount amount: Double) {
+        if case .Hourly(let rate) = type {
+            type = .Hourly(rate + amount)
+        }
+        else if case .Salary(let yearly) = type {
+            type = .Salary(yearly + UInt(amount))
+        }
+    }
+    
+    public func raise(byPercent percent: Double) {
+        if case .Hourly(let income) = type {
+            type = .Hourly(income * (1 + percent))
+        }
+        else if case .Salary(let income) = type {
+            let newIncome = Double(income) * (1 + percent)
+            type = .Salary(UInt(newIncome))
+        }
+    }
+    
+    
+    
+    
 }
 
 ////////////////////////////////////
