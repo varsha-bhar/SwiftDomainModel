@@ -14,11 +14,13 @@ public struct Money {
     
     private static let acceptedCurrencies = ["USD", "EUR", "GBP", "CAN"]
     
+    // initialize
     public init(amount: Int, currency: String) {
         self.amount = amount
         self.currency = currency
     }
     
+    // from diff currency to USD
     private func toUSD() -> Double {
         if self.currency == "USD" {
             return Double(self.amount)
@@ -37,6 +39,7 @@ public struct Money {
         }
     }
     
+    // from USD to diff currency
     private static func fromUSD(_ usd: Double, to currency: String) -> Int {
         if currency == "USD" {
             return Int((usd).rounded())
@@ -55,10 +58,8 @@ public struct Money {
         }
     }
     
+    // convert to USD and then to target currency
     public func convert(_ currency: String) -> Money {
-        guard Self.acceptedCurrencies.contains(currency) else {
-            fatalError("Unsupported currency: \(currency)")
-        }
         let converted = Money.fromUSD(self.toUSD(), to: currency)
         return Money(amount: converted, currency: currency)
     }
@@ -93,6 +94,7 @@ public class Job {
     public var title: String
     public var type: JobType
     
+    // initialize title and type
     public init(title: String, type: JobType) {
         self.title = title
         self.type = type
@@ -128,20 +130,109 @@ public class Job {
             type = .Salary(UInt(newIncome))
         }
     }
-    
-    
-    
-    
 }
 
 ////////////////////////////////////
 // Person
 //
 public class Person {
+    public var firstName: String
+    public var lastName: String
+    public var age: Int
+    
+    private var _job: Job?
+    private var _spouse: Person?
+    
+    // only > 15 can get a job
+    var job: Job? {
+        get {return _job}
+        set {
+            if age >= 16 {
+                _job = newValue
+            } else {
+                _job = nil
+            }
+        }
+    }
+   
+    // only > 18 can have a spouse
+    var spouse:Person? {
+        get {return _spouse}
+        set {
+            if age >= 18 {
+                _spouse = newValue
+            } else {
+                _spouse = nil
+            }
+        }
+    }
+    
+    public init(firstName: String, lastName: String, age: Int) {
+        self.firstName = firstName
+        self.lastName = lastName
+        self.age = age
+    }
+    
+    // toString description of a person
+    public func toString() -> String {
+        var jobDesc: String
+        if job != nil {
+            jobDesc = "\(job!.type)"
+        }
+        else {
+            jobDesc = "nil"
+        }
+        
+        var spouseDesc: String
+        if spouse != nil {
+            spouseDesc = "\(spouse!.firstName) \(spouse!.lastName)"
+        }
+        else {
+            spouseDesc = "nil"
+        }
+        
+        return "[Person: firstName:\(firstName) lastName:\(lastName) age:\(age) job:\(jobDesc) spouse:\(spouseDesc)]"
+    }
+    
 }
 
 ////////////////////////////////////
 // Family
 //
 public class Family {
+    public var members: [Person] = []
+    
+    public init(spouse1: Person, spouse2: Person) {
+        // assign spouses to each other if not already married
+        if spouse1.spouse == nil && spouse2.spouse == nil {
+            spouse1.spouse = spouse2
+            spouse2.spouse = spouse1
+        }
+        self.members.append(spouse1)
+        self.members.append(spouse2)
+    }
+    
+    public func haveChild(_ child: Person) -> Bool {
+        // need 2+ people to be a family
+        if members.count < 2 {
+           return false
+        }
+        // at least 1 member must be 21+
+        if members[0].age >= 21 || members[1].age >= 21 {
+            self.members.append(child)
+            return true
+        }
+        return false
+    }
+    
+    public func householdIncome() -> Int {
+        var totalIncome: Int = 0
+        for member in members {
+            if let job = member.job {
+                totalIncome += job.calculateIncome(2000)
+            }
+        }
+        return totalIncome
+    }
+            
 }
